@@ -35,8 +35,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and Push Compose
         uses: docker/build-push-action@v6
-      - uses: depot/setup-action@v1
-      - uses: depot/build-push-action@v1
         with:
           platforms: linux/amd64
           push: true

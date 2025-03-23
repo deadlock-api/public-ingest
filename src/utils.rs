@@ -1,6 +1,7 @@
 use anyhow::{Context, bail};
 use futures::future::select;
-use log::{debug, info};
+use log::{debug, info, warn};
+use prost::Message;
 use std::pin::pin;
 use std::time::Duration;
 use steam_vent::proto::enums_clientserver::EMsg;
@@ -18,8 +19,9 @@ use steam_vent::{
     },
     proto::steammessages_clientserver_login::CMsgClientLogOff,
 };
-use tokio::time::sleep;
-use valveprotos::deadlock::EgcCitadelClientMessages;
+use tokio::time::{sleep, timeout};
+use valveprotos::deadlock::{CMsgCitadelClientHello, EgcCitadelClientMessages};
+use valveprotos::gcsdk::CMsgConnectionStatus;
 
 #[derive(Debug, Default, Clone)]
 pub struct BotConfig {
@@ -123,9 +125,12 @@ pub async fn create_bot(cfg: &BotConfig) -> anyhow::Result<BotConn> {
 
     let game_coordinator = GameCoordinator::new_without_startup(&connection, 1422450).await?;
 
-    deadlock_startup_seq(&connection, &game_coordinator)
-        .await
-        .context("failed startup seq")?;
+    timeout(
+        Duration::from_secs(60),
+        deadlock_startup_seq(&connection, &game_coordinator),
+    )
+    .await
+    .context("failed startup seq")??;
 
     let bc = BotConn {
         conn: connection,
@@ -171,30 +176,32 @@ pub async fn deadlock_startup_seq(
             Err(e) => Err(e),
         }
     };
-    let connection_status = async {
-        match gc.filter.one_kind(MsgKind(4009)).await {
-            Ok(r) => {
-                debug!("Got connection status: {:?}", r);
-                Ok(())
-            }
-            Err(e) => Err(e),
+    let mut connection_status_subscriber = gc.filter.on_kind(MsgKind(4009));
+    tokio::spawn(async move {
+        while let Ok(msg) = connection_status_subscriber.recv().await {
+            let data = msg.data;
+            let Ok(msg) = CMsgConnectionStatus::decode(data) else {
+                warn!("Got invalid game server message");
+                continue;
+            };
+            debug!("Got connection status: {:?}", msg);
         }
-    };
+    });
     let hello_sender = async {
         loop {
+            let hello_msg = CMsgCitadelClientHello {};
+
+            let encoded = UntypedMessage(hello_msg.encode_to_vec());
+
             debug!("Sending hello");
-            if let Err(e) = gc.send_hello().await {
+            if let Err(e) = gc.send_untyped(encoded, MsgKind(4006), true).await {
                 return Result::<(), _>::Err(e);
             };
             sleep(Duration::from_secs(5)).await;
         }
     };
 
-    select(
-        select(pin!(welcome_playtest), pin!(connection_status)),
-        pin!(hello_sender),
-    )
-    .await;
+    select(pin!(welcome_playtest), pin!(hello_sender)).await;
 
     Ok(())
 }

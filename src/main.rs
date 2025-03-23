@@ -34,16 +34,10 @@ async fn main() -> anyhow::Result<()> {
         username: args.username.clone(),
         password: args.password.clone(),
     };
-    let bot = utils::create_bot(&config).await;
-    let bot = match bot {
-        Ok(bot) => {
-            info!("bot created: {:?}", bot);
-            bot
-        }
-        Err(e) => {
-            bail!("error creating bot: {:?}", e);
-        }
-    };
+    let bot = tryhard::retry_fn(|| utils::create_bot(&config))
+        .retries(3)
+        .exponential_backoff(Duration::from_millis(100))
+        .await?;
 
     for match_id in args.match_ids {
         let result = tryhard::retry_fn(|| fetch_match(match_id, &bot))

@@ -1,5 +1,5 @@
 use anyhow::{Context, bail};
-use futures::future::select;
+use futures::future::{Either, select};
 use log::{debug, info, warn};
 use prost::Message;
 use std::pin::pin;
@@ -195,13 +195,22 @@ pub async fn deadlock_startup_seq(
 
             debug!("Sending hello");
             if let Err(e) = gc.send_untyped(encoded, MsgKind(4006), true).await {
+                warn!("Failed to send hello: {:?}", e);
                 return Result::<(), _>::Err(e);
             };
             sleep(Duration::from_secs(5)).await;
         }
     };
 
-    select(pin!(welcome_playtest), pin!(hello_sender)).await;
+    match select(pin!(welcome_playtest), pin!(hello_sender)).await {
+        Either::Left((Err(e), _)) => {
+            bail!("Failed to get playtest: {:?}", e);
+        }
+        Either::Right((Err(e), _)) => {
+            bail!("Failed to send hello: {:?}", e);
+        }
+        _ => {}
+    }
 
     Ok(())
 }

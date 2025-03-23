@@ -4,6 +4,7 @@ use clap::Parser;
 use log::{debug, error, info};
 use prost::Message;
 use serde_json::json;
+use std::time::Duration;
 use valveprotos::deadlock::c_msg_client_to_gc_get_match_meta_data_response::EResult;
 use valveprotos::deadlock::{
     CMsgClientToGcGetMatchMetaData, CMsgClientToGcGetMatchMetaDataResponse,
@@ -45,7 +46,11 @@ async fn main() -> anyhow::Result<()> {
     };
 
     for match_id in args.match_ids {
-        match fetch_match(match_id, &bot).await {
+        let result = tryhard::retry_fn(|| fetch_match(match_id, &bot))
+            .retries(3)
+            .exponential_backoff(Duration::from_millis(100))
+            .await;
+        match result {
             Ok(_) => info!("Match Salts fetched"),
             Err(e) => error!("Error fetching match salts: {:?}", e),
         }
@@ -69,7 +74,12 @@ async fn fetch_match(match_id: u64, bot: &BotConn) -> anyhow::Result<()> {
     let result = bot.invoke_with_retries(&payload, 3).await?.data;
     let msg = CMsgClientToGcGetMatchMetaDataResponse::decode(&result[..])?;
 
-    match EResult::try_from(msg.result.unwrap_or(EResult::KEResultInternalError as i32))? {
+    let result = msg
+        .result
+        .and_then(|r| EResult::try_from(r).ok())
+        .unwrap_or(EResult::KEResultInternalError);
+
+    match result {
         EResult::KEResultSuccess => {
             debug!("Got Match Salts: {:?}", msg);
             reqwest::Client::new()

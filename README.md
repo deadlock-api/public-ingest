@@ -2,6 +2,12 @@
 
 This project allows you to ingest match data to `deadlock-api.com`. It fetches match metadata and sends it to the Deadlock API.
 
+## Disclaimer
+
+This project is not affiliated with Valve Corporation or Steam. It is a third-party project that uses the Steam API to fetch match data.
+Calling the Steam API requires a Steam account with Deadlock Game access.
+We take no responsibility for any misuse of this project, account bans, or any other issues that may arise from using this project.
+
 ## Usage
 
 ### Using Docker

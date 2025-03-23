@@ -23,20 +23,26 @@ docker run --rm -it --pull always ghcr.io/deadlock-api/public-ingest:latest publ
 
 To build and run the code locally, you need to have Rust and Cargo installed.
 
-1. Clone the repository:
+1. Install protobuf compiler
+
+    ```sh
+    apt install protobuf-compiler
+    ```
+
+2. Clone the repository:
 
     ```sh
     git clone https://github.com/deadlock-api/public-ingest.git
     cd public-ingest
     ```
 
-2. Build the project:
+3. Build the project:
 
     ```sh
     cargo build --release
     ```
 
-3. Run the script:
+4. Run the script:
 
     ```sh
     cargo run --release -- --username STEAM_USERNAME --password STEAM_PASSWORD --match_ids 34044166 34044167 # ...

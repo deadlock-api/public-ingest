@@ -15,7 +15,7 @@ We take no responsibility for any misuse of this project, account bans, or any o
 You can run the script using Docker:
 
 ```bash
-docker run --rm -it ghcr.io/deadlock-api/public-ingest:latest public-ingest \
+docker run --rm -it --pull always ghcr.io/deadlock-api/public-ingest:latest public-ingest \
   --username STEAM_USERNAME --password STEAM_PASSWORD --match_ids 34044166 34044167 # ...
 ```
 

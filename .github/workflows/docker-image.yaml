@@ -38,4 +38,4 @@ jobs:
         with:
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/${{ github.repository }}/public-ingest:latest
+          tags: ghcr.io/${{ github.repository }}:latest

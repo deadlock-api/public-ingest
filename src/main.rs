@@ -1,6 +1,7 @@
 use crate::utils::{BotConfig, BotConn, InvokePayload};
 use anyhow::bail;
 use clap::Parser;
+use itertools::Itertools;
 use log::{debug, error, info};
 use prost::Message;
 use serde_json::json;
@@ -39,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
         .exponential_backoff(Duration::from_millis(100))
         .await?;
 
-    for match_id in args.match_ids {
+    for match_id in args.match_ids.into_iter().unique() {
         let result = tryhard::retry_fn(|| fetch_match(match_id, &bot))
             .retries(3)
             .exponential_backoff(Duration::from_millis(100))
@@ -76,15 +77,19 @@ async fn fetch_match(match_id: u64, bot: &BotConn) -> anyhow::Result<()> {
     match result {
         EResult::KEResultSuccess => {
             debug!("Got Match Salts: {:?}", msg);
+            let payload = json!({
+                "cluster_id": msg.replay_group_id,
+                "match_id": match_id,
+                "metadata_salt": msg.metadata_salt,
+                "replay_salt": msg.replay_salt,
+                "username": bot.bot_name
+            });
+            if let Ok(payload_json) = serde_json::to_string(&payload) {
+                println!("{}", payload_json);
+            }
             reqwest::Client::new()
                 .post("https://api.deadlock-api.com/v1/matches/salts")
-                .json(&[json!({
-                    "cluster_id": msg.replay_group_id,
-                    "match_id": match_id,
-                    "metadata_salt": msg.metadata_salt,
-                    "replay_salt": msg.replay_salt,
-                    "username": bot.bot_name
-                })])
+                .json(&[payload])
                 .send()
                 .await?
                 .error_for_status()?;

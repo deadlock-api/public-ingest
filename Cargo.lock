@@ -1842,6 +1842,7 @@ dependencies = [
  "clap",
  "env_logger",
  "futures",
+ "itertools 0.14.0",
  "log",
  "prost",
  "reqwest",

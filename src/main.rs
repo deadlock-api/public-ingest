@@ -47,7 +47,7 @@ async fn main() -> anyhow::Result<()> {
             .await;
         match result {
             Ok(_) => info!("Match Salts fetched"),
-            Err(e) => error!("Error fetching match salts: {:?}", e),
+            Err(e) => error!("Error fetching match salts: {e:?}"),
         }
     }
 
@@ -76,7 +76,7 @@ async fn fetch_match(match_id: u64, bot: &BotConn) -> anyhow::Result<()> {
 
     match result {
         EResult::KEResultSuccess => {
-            debug!("Got Match Salts: {:?}", msg);
+            debug!("Got Match Salts: {msg:?}");
             let payload = json!({
                 "cluster_id": msg.replay_group_id,
                 "match_id": match_id,
@@ -85,7 +85,7 @@ async fn fetch_match(match_id: u64, bot: &BotConn) -> anyhow::Result<()> {
                 "username": bot.bot_name
             });
             if let Ok(payload_json) = serde_json::to_string(&payload) {
-                println!("{}", payload_json);
+                println!("{payload_json}");
             }
             reqwest::Client::new()
                 .post("https://api.deadlock-api.com/v1/matches/salts")

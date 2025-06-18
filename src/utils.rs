@@ -71,8 +71,7 @@ impl BotConn {
                     let sleep_time_s = 2 * retries;
                     let sleep_dur = Duration::from_secs(sleep_time_s as u64);
                     debug!(
-                        "Retrying after got error during invoke: {:?}. Attempt #{}. Sleeping for {}s",
-                        e, retries, sleep_time_s
+                        "Retrying after got error during invoke: {e:?}. Attempt #{retries}. Sleeping for {sleep_time_s}s"
                     );
 
                     sleep(sleep_dur).await;
@@ -184,7 +183,7 @@ pub async fn deadlock_startup_seq(
                 warn!("Got invalid game server message");
                 continue;
             };
-            debug!("Got connection status: {:?}", msg);
+            debug!("Got connection status: {msg:?}");
         }
     });
     let hello_sender = async {
@@ -195,7 +194,7 @@ pub async fn deadlock_startup_seq(
 
             debug!("Sending hello");
             if let Err(e) = gc.send_untyped(encoded, MsgKind(4006), true).await {
-                warn!("Failed to send hello: {:?}", e);
+                warn!("Failed to send hello: {e:?}");
                 return Result::<(), _>::Err(e);
             };
             sleep(Duration::from_secs(5)).await;

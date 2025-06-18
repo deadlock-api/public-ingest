@@ -8,6 +8,14 @@ This project is not affiliated with Valve Corporation or Steam. It is a third-pa
 Calling the Steam API requires a Steam account with Deadlock Game access.
 We take no responsibility for any misuse of this project, account bans, or any other issues that may arise from using this project.
 
+## How it works
+
+1. We create a connection with your steam account to steam servers (locally from your PC).
+2. We send a request to steam to fetch the salts for the matches you want to fetch metadata for (locally from your PC).
+3. We then send the salts to the Deadlock API.
+
+So the only thing that is sent to deadlock-api.com are the match salts, **no credentials are sent to the API**.
+
 ## Usage
 
 ### Using Docker

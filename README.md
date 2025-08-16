@@ -53,7 +53,7 @@ To build and run the code locally, you need to have Rust and Cargo installed.
 4. Run the script:
 
     ```sh
-    cargo run --release -- --username STEAM_USERNAME --password STEAM_PASSWORD --match_ids 34044166 34044167 # ...
+    cargo run --release -- --username STEAM_USERNAME --password STEAM_PASSWORD --match-ids 34044166 34044167 # ...
     ```
 
 ## Configuration
@@ -62,4 +62,4 @@ The script requires the following arguments:
 
 - `--username`: Your Steam username. You can also use an environment variable `STEAM_USERNAME`.
 - `--password`: Your Steam password. You can also use an environment variable `STEAM_PASSWORD`.
-- `--match_ids`: A list of match IDs to fetch and ingest.
+- `--match-ids`: A list of match IDs to fetch and ingest.

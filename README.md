@@ -24,7 +24,7 @@ You can run the script using Docker:
 
 ```bash
 docker run --rm -it --pull always ghcr.io/deadlock-api/public-ingest:latest public-ingest \
-  --username STEAM_USERNAME --password STEAM_PASSWORD --match_ids 34044166 34044167 # ...
+  --username STEAM_USERNAME --password STEAM_PASSWORD --match-ids 34044166 34044167 # ...
 ```
 
 ### Building Locally

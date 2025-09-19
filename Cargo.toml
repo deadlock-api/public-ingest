@@ -10,7 +10,7 @@ tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread"] }
 steam-vent = { git = "https://github.com/johnpyp/steam-vent", rev = "8e2771eb43b7d4842a817c1ea875983bb91c3bd0" }
 valveprotos = { git = "https://github.com/deadlock-api/valveprotos-rs.git", rev = "dd0a663eae1c53db66265443a5d818bb1db4f79c", features = ["gc-client"] }
 futures = "0.3.31"
-anyhow = "1.0.99"
+anyhow = "1.0.100"
 clap = { version = "4.5.47", features = ["derive", "env"] }
 prost = "0.14.1"
 reqwest = { version = "0.12.23", features = ["json"] }

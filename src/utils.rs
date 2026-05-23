@@ -15,7 +15,7 @@ use steam_vent::{
     NetworkError, ServerList,
     auth::{
         AuthConfirmationHandler as _, ConsoleAuthConfirmationHandler, DeviceConfirmationHandler,
-        FileGuardDataStore,
+        FileGuardDataStore, SharedSecretAuthConfirmationHandler,
     },
     proto::steammessages_clientserver_login::CMsgClientLogOff,
 };
@@ -27,6 +27,7 @@ use valveprotos::gcsdk::CMsgConnectionStatus;
 pub struct BotConfig {
     pub username: String,
     pub password: String,
+    pub shared_secret: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -111,14 +112,27 @@ impl BotConn {
 
 pub async fn create_bot(cfg: &BotConfig) -> anyhow::Result<BotConn> {
     let server_list = ServerList::discover().await?;
-    let mut connection = Connection::login(
-        &server_list,
-        &cfg.username,
-        &cfg.password,
-        FileGuardDataStore::user_cache(),
-        ConsoleAuthConfirmationHandler::default().or(DeviceConfirmationHandler),
-    )
-    .await?;
+    let mut connection = if let Some(secret) = cfg.shared_secret.as_deref() {
+        Connection::login(
+            &server_list,
+            &cfg.username,
+            &cfg.password,
+            FileGuardDataStore::user_cache(),
+            SharedSecretAuthConfirmationHandler::new(secret)
+                .or(ConsoleAuthConfirmationHandler::default())
+                .or(DeviceConfirmationHandler),
+        )
+        .await?
+    } else {
+        Connection::login(
+            &server_list,
+            &cfg.username,
+            &cfg.password,
+            FileGuardDataStore::user_cache(),
+            ConsoleAuthConfirmationHandler::default().or(DeviceConfirmationHandler),
+        )
+        .await?
+    };
 
     connection.set_timeout(Duration::from_secs(20));
 
@@ -188,7 +202,10 @@ pub async fn deadlock_startup_seq(
     });
     let hello_sender = async {
         loop {
-            let hello_msg = CMsgCitadelClientHello {};
+            let hello_msg = CMsgCitadelClientHello {
+                pgi_hash: None,
+                pgi_version: None,
+            };
 
             let encoded = UntypedMessage(hello_msg.encode_to_vec());
 

@@ -21,6 +21,9 @@ pub struct Args {
     pub username: String,
     #[clap(short, long, env)]
     pub password: String,
+    /// Steam Guard shared secret (base64-encoded) for automatic TOTP generation
+    #[clap(short, long, env)]
+    pub shared_secret: Option<String>,
     #[clap(short, long, value_parser, num_args = 1.., value_delimiter = ' ')]
     pub match_ids: Vec<u64>,
 }
@@ -34,6 +37,7 @@ async fn main() -> anyhow::Result<()> {
     let config = BotConfig {
         username: args.username.clone(),
         password: args.password.clone(),
+        shared_secret: args.shared_secret.clone(),
     };
     let bot = tryhard::retry_fn(|| utils::create_bot(&config))
         .retries(3)

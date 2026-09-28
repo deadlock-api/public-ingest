@@ -8,7 +8,7 @@ env_logger = "0.11.10"
 log = "0.4.29"
 tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
 steam-vent = { git = "https://github.com/deadlock-api/steam-vent", rev = "1d7b274f5c2f648aba5dab474b80c1156b409bca" }
-valveprotos = { git = "https://github.com/deadlock-api/valveprotos-rs.git", rev = "5c4c88b4b3cdfced6629c610db9f03723d2d97ec", features = ["gc-client"] }
+valveprotos = { git = "https://github.com/deadlock-api/deadlock-api", rev = "328a51b6b1857a9092d3dd1e5c79609a2e61202d", features = ["gc-client"] }
 futures = "0.3.32"
 anyhow = "1.0.102"
 clap = { version = "4.6.1", features = ["derive", "env"] }
